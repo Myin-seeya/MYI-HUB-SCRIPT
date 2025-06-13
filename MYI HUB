@@ -1,0 +1,446 @@
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local LocalPlayer = Players.LocalPlayer
+
+-- Debug logging function
+local function log(message)
+    print("[SpaceQESpam Debug]: " .. tostring(message))
+end
+
+-- Check for keypress support
+local keypressSupported = (keypress and keyrelease) or VirtualInputManager
+if not keypressSupported then
+    warn("[SpaceQESpam Error]: This script requires an executor that supports keypress/keyrelease or VirtualInputManager.")
+    return
+end
+log("Keypress support detected.")
+
+-- Create UI
+local success, ScreenGui = pcall(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "SpaceQESpamUI"
+    gui.Parent = LocalPlayer:WaitForChild("PlayerGui", 10)
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    return gui
+end)
+if not success then
+    warn("[SpaceQESpam Error]: Failed to create ScreenGui: " .. tostring(ScreenGui))
+    return
+end
+log("ScreenGui created.")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 180, 0, 260)
+Frame.Position = UDim2.new(0.5, -90, 0.5, -130)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.BackgroundTransparency = 0.2
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+log("Frame created.")
+
+-- Add gradient
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
+}
+UIGradient.Parent = Frame
+
+-- Add rounded corners
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
+
+-- Add shadow
+local Shadow = Instance.new("ImageLabel")
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://6014261993"
+Shadow.ImageTransparency = 0.7
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(38, 38, 262, 262)
+Shadow.Parent = Frame
+
+-- Title label
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 160, 0, 30)
+TitleLabel.Position = UDim2.new(0, 10, 0, 10)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Spam Control"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Parent = Frame
+
+-- Space toggle button
+local SpaceToggleButton = Instance.new("TextButton")
+SpaceToggleButton.Size = UDim2.new(0, 160, 0, 35)
+SpaceToggleButton.Position = UDim2.new(0, 10, 0, 50)
+SpaceToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpaceToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpaceToggleButton.Text = "Space Spam: OFF"
+SpaceToggleButton.TextSize = 14
+SpaceToggleButton.Font = Enum.Font.Gotham
+SpaceToggleButton.Parent = Frame
+local SpaceToggleCorner = Instance.new("UICorner")
+SpaceToggleCorner.CornerRadius = UDim.new(0, 8)
+SpaceToggleCorner.Parent = SpaceToggleButton
+
+-- Space status indicator
+local SpaceStatusIndicator = Instance.new("Frame")
+SpaceStatusIndicator.Size = UDim2.new(0, 10, 0, 10)
+SpaceStatusIndicator.Position = UDim2.new(0, 10, 0, 12.5)
+SpaceStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+SpaceStatusIndicator.BorderSizePixel = 0
+SpaceStatusIndicator.Parent = SpaceToggleButton
+local SpaceStatusCorner = Instance.new("UICorner")
+SpaceStatusCorner.CornerRadius = UDim.new(0.5, 0)
+SpaceStatusCorner.Parent = SpaceStatusIndicator
+
+-- Q/E toggle button
+local QEToggleButton = Instance.new("TextButton")
+QEToggleButton.Size = UDim2.new(0, 160, 0, 35)
+QEToggleButton.Position = UDim2.new(0, 10, 0, 95)
+QEToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+QEToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+QEToggleButton.Text = "Q/E Spam: OFF"
+QEToggleButton.TextSize = 14
+QEToggleButton.Font = Enum.Font.Gotham
+QEToggleButton.Parent = Frame
+local QEToggleCorner = Instance.new("UICorner")
+QEToggleCorner.CornerRadius = UDim.new(0, 8)
+QEToggleCorner.Parent = QEToggleButton
+
+-- Q/E status indicator
+local QEStatusIndicator = Instance.new("Frame")
+QEStatusIndicator.Size = UDim2.new(0, 10, 0, 10)
+QEStatusIndicator.Position = UDim2.new(0, 10, 0, 12.5)
+QEStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+QEStatusIndicator.BorderSizePixel = 0
+QEStatusIndicator.Parent = QEToggleButton
+local QEStatusCorner = Instance.new("UICorner")
+QEStatusCorner.CornerRadius = UDim.new(0.5, 0)
+QEStatusCorner.Parent = QEStatusIndicator
+
+-- Hide button
+local HideButton = Instance.new("TextButton")
+HideButton.Size = UDim2.new(0, 160, 0, 35)
+HideButton.Position = UDim2.new(0, 10, 0, 140)
+HideButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+HideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HideButton.Text = "Hide UI"
+HideButton.TextSize = 14
+HideButton.Font = Enum.Font.Gotham
+HideButton.Parent = Frame
+local HideCorner = Instance.new("UICorner")
+HideCorner.CornerRadius = UDim.new(0, 8)
+HideCorner.Parent = HideButton
+
+-- Disable button
+local DisableButton = Instance.new("TextButton")
+DisableButton.Size = UDim2.new(0, 160, 0, 35)
+DisableButton.Position = UDim2.new(0, 10, 0, 185)
+DisableButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
+DisableButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DisableButton.Text = "Disable Script"
+DisableButton.TextSize = 14
+DisableButton.Font = Enum.Font.Gotham
+DisableButton.Parent = Frame
+local DisableCorner = Instance.new("UICorner")
+DisableCorner.CornerRadius = UDim.new(0, 8)
+DisableCorner.Parent = DisableButton
+
+-- Hotkey input
+local HotkeyLabel = Instance.new("TextLabel")
+HotkeyLabel.Size = UDim2.new(0, 160, 0, 20)
+HotkeyLabel.Position = UDim2.new(0, 10, 0, 230)
+HotkeyLabel.BackgroundTransparency = 1
+HotkeyLabel.Text = "UI Hotkey:"
+HotkeyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+HotkeyLabel.TextSize = 12
+HotkeyLabel.Font = Enum.Font.Gotham
+HotkeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+HotkeyLabel.Parent = Frame
+
+local HotkeyTextBox = Instance.new("TextBox")
+HotkeyTextBox.Size = UDim2.new(0, 50, 0, 25)
+HotkeyTextBox.Position = UDim2.new(0, 120, 0, 225)
+HotkeyTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+HotkeyTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+HotkeyTextBox.Text = "H"
+HotkeyTextBox.TextSize = 14
+HotkeyTextBox.Font = Enum.Font.Gotham
+HotkeyTextBox.Parent = Frame
+local HotkeyCorner = Instance.new("UICorner")
+HotkeyCorner.CornerRadius = UDim.new(0, 8)
+HotkeyCorner.Parent = HotkeyTextBox
+
+-- Variables
+local isSpaceSpamming = false -- Space spamming OFF by default
+local isQESpamming = false -- Q/E spamming OFF by default
+local isUIVisible = true
+local currentHotkey = Enum.KeyCode.H
+local spaceSpamCoroutine = nil
+local QESpamCoroutine = nil
+local hotkeyConnection = nil
+local spaceToggleConnection = nil
+local QEToggleConnection = nil
+
+-- Store original button sizes
+local buttonSizes = {
+    [SpaceToggleButton] = UDim2.new(0, 160, 0, 35),
+    [QEToggleButton] = UDim2.new(0, 160, 0, 35),
+    [HideButton] = UDim2.new(0, 160, 0, 35),
+    [DisableButton] = UDim2.new(0, 160, 0, 35)
+}
+
+-- Animation functions
+local function animateButton(button, hover)
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+    local originalSize = buttonSizes[button]
+    local scale = hover and UDim2.new(0, originalSize.X.Offset * 1.05, 0, originalSize.Y.Offset * 1.05) or originalSize
+    local color = hover and Color3.fromRGB(80, 80, 80) or Color3.fromRGB(60, 60, 60)
+    if button == DisableButton then
+        color = hover and Color3.fromRGB(100, 50, 50) or Color3.fromRGB(80, 40, 40)
+    end
+    TweenService:Create(button, tweenInfo, {Size = scale, BackgroundColor3 = color}):Play()
+end
+
+local function animateUI(visible)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local goal = visible and {BackgroundTransparency = 0.2, Position = UDim2.new(0.5, -90, 0.5, -130)} or 
+        {BackgroundTransparency = 1, Position = UDim2.new(0.5, -90, 0.5, -170)}
+    local tween = TweenService:Create(Frame, tweenInfo, goal)
+    tween:Play()
+    if not visible then
+        tween.Completed:Wait()
+        Frame.Visible = false
+    else
+        Frame.Visible = true
+    end
+end
+
+-- Function to simulate key press
+local function simulateKey(keyCode, keyName)
+    local success, err = pcall(function()
+        if keypress and keyrelease then
+            keypress(keyCode)
+            keyrelease(keyCode)
+        else
+            VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+            wait(0.01)
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+    end)
+    if not success then
+        warn("[SpaceQESpam Error]: Keypress failed for " .. keyName .. ": " .. tostring(err))
+        return false
+    end
+    log("Simulated keypress: " .. keyName)
+    return true
+end
+
+-- Function to spam Space key
+local function spamSpace()
+    log("Starting spamSpace coroutine.")
+    while isSpaceSpamming do
+        local deltaTime = RunService.RenderStepped:Wait()
+        if deltaTime > 0.033 then -- Skip if FPS < 30
+            log("Low FPS detected, skipping Space keypress.")
+            continue
+        end
+        if not simulateKey(0x20, "Space") then
+            isSpaceSpamming = false
+            SpaceToggleButton.Text = "Space Spam: OFF"
+            SpaceStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            break
+        end
+        wait(0.025) -- 25ms delay
+    end
+    log("spamSpace coroutine stopped.")
+end
+
+-- Function to spam Q and E keys alternately
+local function spamQE()
+    log("Starting spamQE coroutine.")
+    while isQESpamming do
+        local deltaTime = RunService.RenderStepped:Wait()
+        if deltaTime > 0.033 then -- Skip if FPS < 30
+            log("Low FPS detected, skipping Q/E keypress.")
+            continue
+        end
+        -- Spam Q
+        if not simulateKey(0x51, "Q") then
+            isQESpamming = false
+            QEToggleButton.Text = "Q/E Spam: OFF"
+            QEStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            break
+        end
+        wait(0.01) -- 10ms delay
+        if not isQESpamming then break end
+        -- Spam E
+        if not simulateKey(0x45, "E") then
+            isQESpamming = false
+            QEToggleButton.Text = "Q/E Spam: OFF"
+            QEStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            break
+        end
+        wait(0.01) -- 10ms delay
+    end
+    log("spamQE coroutine stopped.")
+end
+
+-- Toggle Space spam function
+local function toggleSpaceSpam()
+    isSpaceSpamming = not isSpaceSpamming
+    SpaceToggleButton.Text = isSpaceSpamming and "Space Spam: ON" or "Space Spam: OFF"
+    SpaceStatusIndicator.BackgroundColor3 = isSpaceSpamming and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    if isSpaceSpamming then
+        if spaceSpamCoroutine then
+            coroutine.close(spaceSpamCoroutine)
+        end
+        spaceSpamCoroutine = coroutine.create(spamSpace)
+        coroutine.resume(spaceSpamCoroutine)
+    else
+        if spaceSpamCoroutine then
+            coroutine.close(spaceSpamCoroutine)
+            spaceSpamCoroutine = nil
+        end
+    end
+    log("Space spam toggled: " .. tostring(isSpaceSpamming))
+end
+
+-- Toggle Q/E spam function
+local function toggleQESpam()
+    isQESpamming = not isQESpamming
+    QEToggleButton.Text = isQESpamming and "Q/E Spam: ON" or "Q/E Spam: OFF"
+    QEStatusIndicator.BackgroundColor3 = isQESpamming and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    if isQESpamming then
+        if QESpamCoroutine then
+            coroutine.close(QESpamCoroutine)
+        end
+        QESpamCoroutine = coroutine.create(spamQE)
+        coroutine.resume(QESpamCoroutine)
+    else
+        if QESpamCoroutine then
+            coroutine.close(QESpamCoroutine)
+            QESpamCoroutine = nil
+        end
+    end
+    log("Q/E spam toggled: " .. tostring(isQESpamming))
+end
+
+-- Toggle UI visibility
+local function toggleUIVisibility()
+    isUIVisible = not isUIVisible
+    HideButton.Text = isUIVisible and "Hide UI" or "Show UI"
+    animateUI(isUIVisible)
+    log("UI visibility toggled: " .. tostring(isUIVisible))
+end
+
+-- Update hotkey
+local function updateHotkey(newKey)
+    if hotkeyConnection then
+        hotkeyConnection:Disconnect()
+        hotkeyConnection = nil
+    end
+    local success, keyCode = pcall(function()
+        return Enum.KeyCode[newKey:upper()]
+    end)
+    if success and keyCode then
+        currentHotkey = keyCode
+        HotkeyTextBox.Text = newKey:upper()
+        hotkeyConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+            if not gameProcessedEvent and input.KeyCode == currentHotkey then
+                toggleUIVisibility()
+            end
+        end)
+        log("Hotkey updated to: " .. newKey:upper())
+    else
+        HotkeyTextBox.Text = "Invalid"
+        wait(1)
+        HotkeyTextBox.Text = currentHotkey.Name
+        log("Invalid hotkey attempted: " .. newKey)
+    end
+end
+
+-- Disable script function
+local function disableScript()
+    isSpaceSpamming = false
+    isQESpamming = false
+    if spaceSpamCoroutine then
+        coroutine.close(spaceSpamCoroutine)
+        spaceSpamCoroutine = nil
+    end
+    if QESpamCoroutine then
+        coroutine.close(QESpamCoroutine)
+        QESpamCoroutine = nil
+    end
+    if hotkeyConnection then
+        hotkeyConnection:Disconnect()
+        hotkeyConnection = nil
+    end
+    if spaceToggleConnection then
+        spaceToggleConnection:Disconnect()
+        spaceToggleConnection = nil
+    end
+    if QEToggleConnection then
+        QEToggleConnection:Disconnect()
+        QEToggleConnection = nil
+    end
+    ScreenGui:Destroy()
+    log("Script disabled and UI destroyed.")
+end
+
+-- Event connections
+SpaceToggleButton.MouseButton1Click:Connect(toggleSpaceSpam)
+QEToggleButton.MouseButton1Click:Connect(toggleQESpam)
+HideButton.MouseButton1Click:Connect(toggleUIVisibility)
+DisableButton.MouseButton1Click:Connect(disableScript)
+HotkeyTextBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        updateHotkey(HotkeyTextBox.Text)
+    end
+end)
+
+-- Hover effects
+for _, button in pairs({SpaceToggleButton, QEToggleButton, HideButton, DisableButton}) do
+    button.MouseEnter:Connect(function()
+        animateButton(button, true)
+    end)
+    button.MouseLeave:Connect(function()
+        animateButton(button, false)
+    end)
+end
+
+-- Initial hotkey setup
+updateHotkey("H")
+
+-- F key for Space spam toggle
+spaceToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.F then
+        toggleSpaceSpam()
+    end
+end)
+
+-- R key for Q/E spam toggle
+QEToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.R then
+        toggleQESpam()
+    end
+end)
+
+-- Cleanup on player leave
+LocalPlayer.AncestryChanged:Connect(function()
+    disableScript()
+end)
+
+log("Script initialized successfully.")
