@@ -316,7 +316,7 @@ local function spamQE()
             QEStatusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             break
         end
-        wait(0.005) -- 20ms delay
+        wait(0) -- 20ms delay
         if not isQESpamming then break end
         if not simulateKey(0x45, "E") then
             isQESpamming = false
