@@ -2,6 +2,8 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local LocalPlayer = Players.LocalPlayer
 
@@ -20,6 +22,19 @@ elseif VirtualInputManager then
     log("VirtualInputManager detected as fallback.")
 else
     warn("[SpaceQESpam Warning]: No keypress support. Spamming will not work.")
+end
+
+-- Check HTTP service
+local httpEnabled = false
+local success, httpCheck = pcall(function()
+    HttpService:GetAsync("https://www.roblox.com", true)
+    return true
+end)
+if success and httpCheck then
+    httpEnabled = true
+    log("HTTP service enabled.")
+else
+    warn("[SpaceQESpam Warning]: HTTP requests disabled or failed. Server hopping may not work.")
 end
 
 -- Wait for PlayerGui
@@ -49,8 +64,8 @@ end
 log("ScreenGui created.")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 180, 0, 230) -- Increased height for Space button
-Frame.Position = UDim2.new(0.5, -90, 0.5, -115)
+Frame.Size = UDim2.new(0, 180, 0, 305)
+Frame.Position = UDim2.new(0.5, -90, 0.5, -152.5)
 Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Frame.BackgroundTransparency = 0.2
 Frame.BorderSizePixel = 0
@@ -145,10 +160,38 @@ local QEStatusCorner = Instance.new("UICorner")
 QEStatusCorner.CornerRadius = UDim.new(0.5, 0)
 QEStatusCorner.Parent = QEStatusIndicator
 
+-- Server Hop button
+local ServerHopButton = Instance.new("TextButton")
+ServerHopButton.Size = UDim2.new(0, 160, 0, 35)
+ServerHopButton.Position = UDim2.new(0, 10, 0, 140)
+ServerHopButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ServerHopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ServerHopButton.Text = "Server Hop"
+ServerHopButton.TextSize = 14
+ServerHopButton.Font = Enum.Font.Gotham
+ServerHopButton.Parent = Frame
+local ServerHopCorner = Instance.new("UICorner")
+ServerHopCorner.CornerRadius = UDim.new(0, 8)
+ServerHopCorner.Parent = ServerHopButton
+
+-- Rejoin button
+local RejoinButton = Instance.new("TextButton")
+RejoinButton.Size = UDim2.new(0, 160, 0, 35)
+RejoinButton.Position = UDim2.new(0, 10, 0, 185)
+RejoinButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+RejoinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RejoinButton.Text = "Rejoin"
+RejoinButton.TextSize = 14
+RejoinButton.Font = Enum.Font.Gotham
+RejoinButton.Parent = Frame
+local RejoinCorner = Instance.new("UICorner")
+RejoinCorner.CornerRadius = UDim.new(0, 8)
+RejoinCorner.Parent = RejoinButton
+
 -- Hide button
 local HideButton = Instance.new("TextButton")
 HideButton.Size = UDim2.new(0, 160, 0, 35)
-HideButton.Position = UDim2.new(0, 10, 0, 140)
+HideButton.Position = UDim2.new(0, 10, 0, 230)
 HideButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 HideButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 HideButton.Text = "Hide UI"
@@ -162,7 +205,7 @@ HideCorner.Parent = HideButton
 -- Hotkey label
 local HotkeyLabel = Instance.new("TextLabel")
 HotkeyLabel.Size = UDim2.new(0, 160, 0, 20)
-HotkeyLabel.Position = UDim2.new(0, 10, 0, 165)
+HotkeyLabel.Position = UDim2.new(0, 10, 0, 255)
 HotkeyLabel.BackgroundTransparency = 1
 HotkeyLabel.Text = "UI Hotkey: H"
 HotkeyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -174,7 +217,7 @@ HotkeyLabel.Parent = Frame
 -- Record Key button
 local RecordKeyButton = Instance.new("TextButton")
 RecordKeyButton.Size = UDim2.new(0, 160, 0, 25)
-RecordKeyButton.Position = UDim2.new(0, 10, 0, 185)
+RecordKeyButton.Position = UDim2.new(0, 10, 0, 275)
 RecordKeyButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 RecordKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RecordKeyButton.Text = "Record Key"
@@ -188,7 +231,7 @@ RecordKeyCorner.Parent = RecordKeyButton
 -- Disable button
 local DisableButton = Instance.new("TextButton")
 DisableButton.Size = UDim2.new(0, 160, 0, 25)
-DisableButton.Position = UDim2.new(0, 10, 0, 210)
+DisableButton.Position = UDim2.new(0, 10, 0, 300)
 DisableButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
 DisableButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 DisableButton.Text = "Disable Script"
@@ -215,6 +258,8 @@ local isRecordingKey = false
 local buttonSizes = {
     [SpaceToggleButton] = UDim2.new(0, 160, 0, 35),
     [QEToggleButton] = UDim2.new(0, 160, 0, 35),
+    [ServerHopButton] = UDim2.new(0, 160, 0, 35),
+    [RejoinButton] = UDim2.new(0, 160, 0, 35),
     [HideButton] = UDim2.new(0, 160, 0, 35),
     [RecordKeyButton] = UDim2.new(0, 160, 0, 25),
     [DisableButton] = UDim2.new(0, 160, 0, 25)
@@ -239,8 +284,8 @@ end
 
 local function animateUI(visible)
     local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local goal = visible and {BackgroundTransparency = 0.2, Position = UDim2.new(0.5, -90, 0.5, -115)} or 
-        {BackgroundTransparency = 1, Position = UDim2.new(0.5, -90, 0.5, -155)}
+    local goal = visible and {BackgroundTransparency = 0.2, Position = UDim2.new(0.5, -90, 0.5, -152.5)} or 
+        {BackgroundTransparency = 1, Position = UDim2.new(0.5, -90, 0.5, -192.5)}
     local success, err = pcall(function()
         local tween = TweenService:Create(Frame, tweenInfo, goal)
         tween:Play()
@@ -327,6 +372,42 @@ local function spamQE()
         wait(0) -- 20ms delay
     end
     log("spamQE coroutine stopped.")
+end
+
+-- Function to hop to a different server
+local function serverHop()
+    log("Attempting server hop.")
+    if not httpEnabled then
+        warn("[SpaceQESpam Error]: HTTP requests disabled, cannot server hop.")
+        return
+    end
+    local success, result = pcall(function()
+        local url = "https://games.roblox.com/v1/games/89272732912332/servers/Public?sortOrder=Asc&limit=100"
+        local servers = HttpService:JSONDecode(HttpService:GetAsync(url))
+        for _, server in pairs(servers.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(89272732912332, server.id, LocalPlayer)
+                log("Teleporting to server: " .. server.id)
+                return true
+            end
+        end
+        warn("[SpaceQESpam Warning]: No suitable servers found.")
+        return false
+    end)
+    if not success then
+        warn("[SpaceQESpam Error]: Server hop failed: " .. tostring(result))
+    end
+end
+
+-- Function to rejoin the same server
+local function rejoin()
+    log("Attempting to rejoin server: " .. game.JobId)
+    local success, err = pcall(function()
+        TeleportService:TeleportToPlaceInstance(89272732912332, game.JobId, LocalPlayer)
+    end)
+    if not success then
+        warn("[SpaceQESpam Error]: Rejoin failed: " .. tostring(err))
+    end
 end
 
 -- Toggle Space spam function
@@ -463,11 +544,13 @@ end
 local success, err = pcall(function()
     SpaceToggleButton.MouseButton1Click:Connect(toggleSpaceSpam)
     QEToggleButton.MouseButton1Click:Connect(toggleQESpam)
+    ServerHopButton.MouseButton1Click:Connect(serverHop)
+    RejoinButton.MouseButton1Click:Connect(rejoin)
     HideButton.MouseButton1Click:Connect(toggleUIVisibility)
     RecordKeyButton.MouseButton1Click:Connect(startRecordingKey)
     DisableButton.MouseButton1Click:Connect(disableScript)
 
-    for _, button in pairs({SpaceToggleButton, QEToggleButton, HideButton, RecordKeyButton, DisableButton}) do
+    for _, button in pairs({SpaceToggleButton, QEToggleButton, ServerHopButton, RejoinButton, HideButton, RecordKeyButton, DisableButton}) do
         button.MouseEnter:Connect(function()
             animateButton(button, true)
         end)
