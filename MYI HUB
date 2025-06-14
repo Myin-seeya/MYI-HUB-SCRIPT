@@ -64,8 +64,8 @@ end
 log("ScreenGui created.")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 180, 0, 320) -- Reverted height to 320px
-Frame.Position = UDim2.new(0.5, -90, 0.5, -160) -- Adjusted for new height
+Frame.Size = UDim2.new(0, 180, 0, 320)
+Frame.Position = UDim2.new(0.5, -90, 0.5, -160)
 Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Frame.BackgroundTransparency = 0.2
 Frame.BorderSizePixel = 0
@@ -104,12 +104,12 @@ local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0, 160, 0, 30)
 TitleLabel.Position = UDim2.new(0, 10, 0, 10)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "Spam Control"
+TitleLabel.Text = "MYI HUB"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 16
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.Parent = Frame
-log("TitleLabel positioned at y=10.")
+log("TitleLabel positioned at y=10 with text 'MYI HUB'.")
 
 -- Space toggle button
 local SpaceToggleButton = Instance.new("TextButton")
@@ -239,7 +239,7 @@ log("RecordKeyButton positioned at y=250.")
 -- Disable button
 local DisableButton = Instance.new("TextButton")
 DisableButton.Size = UDim2.new(0, 160, 0, 25)
-DisableButton.Position = UDim2.new(0, 10, 0, 280) -- Moved to y=280, halving gap to 30px
+DisableButton.Position = UDim2.new(0, 10, 0, 280)
 DisableButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
 DisableButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 DisableButton.Text = "Disable Script"
@@ -293,20 +293,33 @@ end
 
 local function animateUI(visible)
     local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local goal = visible and {BackgroundTransparency = 0.2, Position = UDim2.new(0.5, -90, 0.5, -160)} or 
-        {BackgroundTransparency = 1, Position = UDim2.new(0.5, -90, 0.5, -200)}
-    local success, err = pcall(function()
-        local tween = TweenService:Create(Frame, tweenInfo, goal)
-        tween:Play()
-        if not visible then
-            tween.Completed:Wait()
-            Frame.Visible = false
-        else
-            Frame.Visible = true
+    local buttons = {SpaceToggleButton, QEToggleButton, ServerHopButton, RejoinButton, HideButton, RecordKeyButton, DisableButton}
+    if visible then
+        Frame.Visible = true
+        local frameTween = TweenService:Create(Frame, tweenInfo, {BackgroundTransparency = 0.2})
+        local buttonTweens = {}
+        for _, button in pairs(buttons) do
+            table.insert(buttonTweens, TweenService:Create(button, tweenInfo, {TextTransparency = 0, BackgroundTransparency = 0}))
         end
-    end)
-    if not success then
-        log("UI animation failed: " .. tostring(err))
+        frameTween:Play()
+        for _, tween in pairs(buttonTweens) do
+            tween:Play()
+        end
+        frameTween.Completed:Wait()
+        log("UI faded in with original position retained.")
+    else
+        local frameTween = TweenService:Create(Frame, tweenInfo, {BackgroundTransparency = 1})
+        local buttonTweens = {}
+        for _, button in pairs(buttons) do
+            table.insert(buttonTweens, TweenService:Create(button, tweenInfo, {TextTransparency = 1, BackgroundTransparency = 1}))
+        end
+        frameTween:Play()
+        for _, tween in pairs(buttonTweens) do
+            tween:Play()
+        end
+        frameTween.Completed:Wait()
+        Frame.Visible = false
+        log("UI faded out.")
     end
 end
 
